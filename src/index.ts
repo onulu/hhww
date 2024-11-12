@@ -1,40 +1,13 @@
-/**
- * MBTI를 계산해 콘솔에 출력하는 콘솔 프로그램을 작성해주세요.
- *
- * 아래 questions 배열은 MBTI를 계산하기 위한 문항들입니다.
- * 모든 문항에 대한 선택지는 다섯개로 동일하며 다음과 같습니다.
- *   매우 아니다, 아니다, 보통이다, 그렇다, 매우 그렇다
- *
- * 선택지에 따라 다음과 같이 점수를 부여합니다.
- *   매우 아니다는 disagree 타입에 2점
- *   아니다는 disagree 타입에 1점
- *   보통이다는 양쪽에 0점
- *   그렇다는 agree 타입에 1점
- *   매우 그렇다는 agree 타입에 2점
- *
- * 예를 들어 첫 번째 문항인 `다이어트는 주변인의 시선보다는 자기만족을 위해 하는 거라고 생각한다.`에
- * 매우 아니다라고 답하면 E 타입에 2점
- * 아니다라고 답하면 E 타입에 1점
- * 보통이다라고 답하면 양쪽에 0점
- * 그렇다라고 답하면 I 타입에 1점
- * 매우 그렇다라고 답하면 I 타입에 2점을 부여합니다.
- *
- * 자리가 같은 두 알파벳의 점수가 같은 경우 다음과 같이 처리합니다.
- *   E == I: E
- *   S == N: N
- *   F == T: F
- *   P == J: P
- * 따라서 모든 항목에 보통이다라고 답하면 결과는 ENFP가 됩니다.
- *
- * 입력값에 오류는 없다고 가정합니다.
- *
- * 필요하다면 questions 변수의 내용을 임의로 바꾸셔도 괜찮습니다.
- *
- * 언어는 자바스크립트나 타입스크립트 모두 무방합니다.
- */
-
 type MBTIType = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P'
-type Answer = '매우 아니다' | '아니다' | '보통이다' | '그렇다' | '매우 그렇다'
+
+type AnswerType =
+  | '매우 아니다'
+  | '아니다'
+  | '보통이다'
+  | '그렇다'
+  | '매우 그렇다'
+
+type UserAnswer = AnswerType[]
 
 interface Question {
   disagree: MBTIType
@@ -52,8 +25,6 @@ interface MBTIScore {
   J: number
   P: number
 }
-
-type UserAnswers = Answer[]
 
 const questions: Question[] = [
   {
@@ -99,59 +70,70 @@ const questions: Question[] = [
 ]
 
 // 아래에 코드를 작성해주세요. 사용자의 응답은 임의의 형태로 상수로 작성해주세요.
-const answerMapper = (answer: Answer) => {
-  switch (answer) {
-    case '매우 아니다':
-      return -2
-    case '아니다':
-      return -1
-    case '보통이다':
-      return 0
-    case '그렇다':
-      return 1
-    case '매우 그렇다':
-      return 2
-    default:
-      throw new Error('잘못된 답변입니다.')
+
+const SCORE_MAP: Record<AnswerType, number> = {
+  '매우 아니다': -2,
+  아니다: -1,
+  보통이다: 0,
+  그렇다: 1,
+  '매우 그렇다': 2,
+}
+
+const initialScore: MBTIScore = {
+  E: 0,
+  I: 0,
+  S: 0,
+  N: 0,
+  T: 0,
+  F: 0,
+  J: 0,
+  P: 0,
+}
+
+const updateScore = (
+  score: MBTIScore,
+  question: Question,
+  answer: AnswerType
+) => {
+  const currentScore = SCORE_MAP[answer]
+
+  if (currentScore === 0) return score
+
+  const scoreType = currentScore > 0 ? question.agree : question.disagree
+
+  return {
+    ...score,
+    [scoreType]: score[scoreType] + Math.abs(currentScore),
   }
 }
 
-const calculateMBTI = (answers: UserAnswers) => {
+const getMBTIFromScore = (score: MBTIScore) => {
+  const MBTI = [
+    score.E >= score.I ? 'E' : 'I',
+    score.S > score.N ? 'S' : 'N',
+    score.T >= score.F ? 'T' : 'F',
+    score.J >= score.P ? 'J' : 'P',
+  ].join('')
+
+  return MBTI
+}
+
+const calculateMBTI = (answers: UserAnswer) => {
   if (answers.length != questions.length) {
     throw new Error('답변 수와 문항 수가 일치하지 않습니다.')
   }
 
-  const scoreMap: MBTIScore = {
-    E: 0,
-    I: 0,
-    S: 0,
-    N: 0,
-    T: 0,
-    F: 0,
-    J: 0,
-    P: 0,
-  }
+  const score = answers.reduce(
+    (accScores, answer, index) =>
+      updateScore(accScores, questions[index], answer),
+    initialScore
+  )
 
-  questions.forEach((question, idx) => {
-    const score = answerMapper(answers[idx])
-    if (score > 0) {
-      scoreMap[question.agree] += Math.abs(score)
-    } else if (score < 0) {
-      scoreMap[question.disagree] += Math.abs(score)
-    }
-  })
-
-  const result = [
-    scoreMap.E >= scoreMap.I ? 'E' : 'I',
-    scoreMap.S > scoreMap.N ? 'S' : 'N',
-    scoreMap.T >= scoreMap.F ? 'T' : 'F',
-    scoreMap.J >= scoreMap.P ? 'J' : 'P',
-  ].join('')
-
+  const result = getMBTIFromScore(score)
   return result
 }
 
-const testAnswer: UserAnswers = [
+const testESTP: UserAnswer = [
   '매우 아니다', // E: 2
   '아니다', // S: 1
   '보통이다', // 0
@@ -161,7 +143,7 @@ const testAnswer: UserAnswers = [
   '아니다', // T: 1
   '보통이다', // 0
 ]
-const testENFP: UserAnswers = [
+const testENFP: UserAnswer = [
   '보통이다',
   '보통이다',
   '보통이다',
@@ -171,7 +153,7 @@ const testENFP: UserAnswers = [
   '보통이다',
   '보통이다',
 ]
-const testDisagree: UserAnswers = [
+const testESTJ: UserAnswer = [
   '매우 아니다',
   '매우 아니다',
   '매우 아니다',
@@ -181,7 +163,7 @@ const testDisagree: UserAnswers = [
   '매우 아니다',
   '매우 아니다',
 ]
-const testAgree: UserAnswers = [
+const testINFP: UserAnswer = [
   '매우 그렇다',
   '매우 그렇다',
   '매우 그렇다',
@@ -193,6 +175,6 @@ const testAgree: UserAnswers = [
 ]
 
 console.log(`ENFP: ${calculateMBTI(testENFP)}`)
-console.log(`ESTJ: ${calculateMBTI(testDisagree)}`)
-console.log(`INFP: ${calculateMBTI(testAgree)}`)
-console.log(`MBTI: ${calculateMBTI(testAnswer)}`)
+console.log(`ESTJ: ${calculateMBTI(testESTJ)}`)
+console.log(`INFP: ${calculateMBTI(testINFP)}`)
+console.log(`ESTP: ${calculateMBTI(testESTP)}`)
