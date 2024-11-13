@@ -8,7 +8,8 @@
     "start:reorder": "ts-node src/reorder/index.ts",
     "build": "tsc",
     "test": "jest",
-    "test:mbti": "jest --watch --testNamePattern=mbti",
+    "test:mbti": "jest test/mbti.test.ts",
+    "test:reorder": "jest test/reorder.test.ts",
     "test:watch": "jest --watch"
   },
   "keywords": [],

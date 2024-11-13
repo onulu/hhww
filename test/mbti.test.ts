@@ -34,18 +34,15 @@ describe('MBTI Calculator', () => {
     const allDisagree: UserAnswer = Array(8).fill('매우 아니다')
 
     it('사용자 응답이 모두 "보통이다"일 경우, ENFP를 반환해야 한다.', () => {
-      const result = calculateMBTI(allNeutral)
-      expect(result).toBe('ENFP')
+      expect(calculateMBTI(allNeutral)).toBe('ENFP')
     })
 
     it('사용자 응답이 모두 "매우 그렇다"일 경우, INFP를 반환해야 한다.', () => {
-      const result = calculateMBTI(allAgree)
-      expect(result).toBe('INFP')
+      expect(calculateMBTI(allAgree)).toBe('INFP')
     })
 
     it('사용자 응답이 모두 "매우 아니다"일 경우, ESTJ를 반환해야 한다.', () => {
-      const result = calculateMBTI(allDisagree)
-      expect(result).toBe('ESTJ')
+      expect(calculateMBTI(allDisagree)).toBe('ESTJ')
     })
   })
 })
