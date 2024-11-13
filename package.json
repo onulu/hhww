@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start:mbti": "ts-node src/mbti/index.ts",
+    "start:reorder": "ts-node src/reorder/index.ts",
     "build": "tsc",
     "test": "jest",
     "test:mbti": "jest --watch --testNamePattern=mbti",
